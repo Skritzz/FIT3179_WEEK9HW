@@ -1,55 +1,32 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "description": "Melbourne metropolitan train stations sized by annual entries.",
-  "width": "container",
-  "height": 620,
-  "projection": {"type": "mercator"},
-  "data": {
-    "url": "data/annual_metropolitan_train_station_entries_fy_2023_2024.csv",
-    "format": {
-      "type": "csv",
-      "parse": {
-        "Stop_ID": "number",
-        "Stop_lat": "number",
-        "Stop_long": "number",
-        "Pax_annual": "number",
-        "Pax_AM_peak": "number",
-        "Pax_PM_peak": "number"
+  "width": 700,
+  "height": 600,
+  "projection": {"type": "mercator", "center": [144.9631, -37.8136], "scale": 30000},
+
+  "layer": [
+    {
+      "data": {
+        "url": "data/annual_metropolitan_train_station_entries_fy_2023_2024.csv"
+      },
+      "transform": [
+        {"calculate": "toNumber(datum.Stop_long)", "as": "lon"},
+        {"calculate": "toNumber(datum.Stop_lat)", "as": "lat"},
+        {"calculate": "toNumber(datum.Pax_annual)", "as": "pax"},
+        {"filter": "isFinite(datum.lon) && isFinite(datum.lat)"},
+        {"calculate": "isFinite(datum.pax) ? datum.pax : 0", "as": "pax_safe"},
+        {"calculate": "datum.pax_safe > 0 ? datum.pax_safe : 1", "as": "size_safe"}
+      ],
+      "mark": {"type": "circle", "opacity": 0.6, "stroke": "black", "strokeWidth": 0.3},
+      "encoding": {
+        "longitude": {"field": "lon", "type": "quantitative"},
+        "latitude": {"field": "lat", "type": "quantitative"},
+        "size": {"field": "size_safe", "type": "quantitative", "scale": {"range": [10, 1000]}},
+        "tooltip": [
+          {"field": "Stop_name", "type": "nominal", "title": "Station"},
+          {"field": "Pax_annual", "type": "quantitative", "title": "Annual Entries"}
+        ]
       }
     }
-  },
-  "transform": [
-    {"filter": "isFinite(datum.Stop_lat) && isFinite(datum.Stop_long)"},
-    {"calculate": "isFinite(datum.Pax_annual) ? datum.Pax_annual : 0", "as": "pax_safe"},
-    {"calculate": "datum.pax_safe > 0 ? datum.pax_safe : 1", "as": "size_safe"}
-  ],
-  "mark": {"type": "circle", "opacity": 0.9, "stroke": "#333", "strokeWidth": 0.4},
-  "encoding": {
-    "longitude": {"field": "Stop_long", "type": "quantitative"},
-    "latitude": {"field": "Stop_lat", "type": "quantitative"},
-    "size": {
-      "field": "size_safe",
-      "type": "quantitative",
-      "title": "Annual entries",
-      "scale": {"type": "sqrt", "range": [12, 1600]}
-    },
-    "color": {
-      "field": "pax_safe",
-      "type": "quantitative",
-      "title": "Annual entries"
-    },
-    "tooltip": [
-      {"field": "Stop_name", "type": "nominal", "title": "Station"},
-      {"field": "Stop_ID", "type": "nominal", "title": "Stop ID"},
-      {"field": "Fin_year", "type": "nominal", "title": "Fin. year"},
-      {"field": "Pax_annual", "type": "quantitative", "title": "Annual entries", "format": ","},
-      {"field": "Pax_AM_peak", "type": "quantitative", "title": "AM peak avg", "format": ","},
-      {"field": "Pax_PM_peak", "type": "quantitative", "title": "PM peak avg", "format": ","}
-    ]
-  },
-  "title": {
-    "text": "Melbourne Train Stations — Annual Entries (FY2023–24)",
-    "anchor": "start",
-    "subtitle": "Proportional circles sized by Pax_annual (CSV plotted directly)"
-  }
+  ]
 }
