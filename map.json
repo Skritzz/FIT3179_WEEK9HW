@@ -2,30 +2,47 @@
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
   "width": 700,
   "height": 600,
-  "projection": {"type": "mercator", "center": [144.9631, -37.8136], "scale": 30000},
+  "projection": {"type": "mercator", "center": [145.0, -37.8], "scale": 22000},
 
   "layer": [
+    {
+      "data": {
+        "url": "data/victoria_boundary.json",
+        "format": {"type": "json"}
+      },
+      "mark": {
+        "type": "geoshape",
+        "fill": "#f0f0f0",
+        "stroke": "#999",
+        "strokeWidth": 1
+      }
+    },
     {
       "data": {
         "url": "data/annual_metropolitan_train_station_entries_fy_2023_2024.csv"
       },
       "transform": [
-        {"calculate": "toNumber(datum.Stop_long)", "as": "lon"},
-        {"calculate": "toNumber(datum.Stop_lat)", "as": "lat"},
-        {"calculate": "toNumber(datum.Pax_annual)", "as": "pax"},
+        {"calculate": "toNumber(replace(datum.Stop_long, ',', ''))", "as": "lon"},
+        {"calculate": "toNumber(replace(datum.Stop_lat, ',', ''))", "as": "lat"},
+        {"calculate": "toNumber(replace(datum.Pax_annual, ',', ''))", "as": "pax"},
         {"filter": "isFinite(datum.lon) && isFinite(datum.lat)"},
         {"calculate": "isFinite(datum.pax) ? datum.pax : 0", "as": "pax_safe"},
         {"calculate": "datum.pax_safe > 0 ? datum.pax_safe : 1", "as": "size_safe"}
       ],
-      "mark": {"type": "circle", "opacity": 0.6, "stroke": "black", "strokeWidth": 0.3},
+      "mark": {"type": "circle", "opacity": 0.6},
       "encoding": {
         "longitude": {"field": "lon", "type": "quantitative"},
         "latitude": {"field": "lat", "type": "quantitative"},
-        "size": {"field": "size_safe", "type": "quantitative", "scale": {"range": [10, 1000]}},
+        "size": {
+          "field": "size_safe",
+          "type": "quantitative",
+          "scale": {"range": [10, 2000]}
+        },
         "tooltip": [
-          {"field": "Stop_name", "type": "nominal", "title": "Station"},
-          {"field": "Pax_annual", "type": "quantitative", "title": "Annual Entries"}
-        ]
+          {"field": "Stop_name", "type": "nominal"},
+          {"field": "Pax_annual", "type": "quantitative"}
+        ],
+        "color": {"value": "#1f77b4"}
       }
     }
   ]
